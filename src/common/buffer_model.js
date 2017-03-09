@@ -6,7 +6,7 @@ const prefs = require("./userPref_model");
 const _ = require("lodash");
 const floop = require("./floop");
 const bufferAction = require("./buffer_action");
-const FlooDMP = require("../floodmp").FlooDMP;
+const FlooDMP = require("./floodmp").FlooDMP;
 const dmp = new FlooDMP();
 const fields = flux.FieldTypes;
 

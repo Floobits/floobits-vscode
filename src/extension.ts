@@ -11,6 +11,7 @@ interface FlooURL {
   workspace: string;
 };
 
+
 declare var fl: {
   PLUGIN_VERSION: string;
   base_path: string;
@@ -31,7 +32,7 @@ fl.PLUGIN_VERSION = "0.0.1";
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
-const TextDocuments:{ [s: string]: vscode.TextDocument; } = {};
+const TextDocuments: { [s: string]: vscode.TextDocument; } = {};
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -43,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with  registerCommand
   // The commandId parameter must match the command field in package.json
-  
+
   let disposable = vscode.commands.registerCommand('extension.joinWorkspace', () => {
     // The code you place here will be executed every time your command is executed
 
@@ -53,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(disposable);
 
-  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((event: vscode.TextEditor) =>  {
+  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((event: vscode.TextEditor) => {
     console.log('hello', event);
   }));
 
@@ -86,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
   that.users = new usersModel.Users();
   const floorc = require("./common/floorc");
   const auth = this.auth = floorc.auth[floourl.host];
-  that.me = new usersModel.User({id: auth.username});
+  that.me = new usersModel.User({ id: auth.username });
   const buffer = require("./common/buffer_model");
   that.bufs = new buffer.Buffers();
 
@@ -107,6 +108,8 @@ export function activate(context: vscode.ExtensionContext) {
   persistentJson.write();
 
   const floop = require("./common/floop");
+
+
   floop.onROOM_INFO(that.on_room_info, that);
   floop.onDISCONNECT(that.on_disconnect, that);
   floop.onREQUEST_PERMS(that.on_request_perms, that);
@@ -125,10 +128,10 @@ export function activate(context: vscode.ExtensionContext) {
   const FlooHandler = require("./common/handlers/floohandler").FlooHandler;
   const created: boolean = false;
   that.handler = new FlooHandler(floobitsPath, floourl, that.me, that.users, that.bufs, that.filetree, created);
-  const WebRTC = require("./common/webrtc");
-  that.webrtc = new WebRTC(that.users, that.me);
+  // const WebRTC = require("./common/webrtc");
+  // that.webrtc = new WebRTC(that.users, that.me);
   const statusBar = require("./build/status_bar");
-  const view = statusBar({floourl: floourl, me: that.me});
+  const view = statusBar({ floourl: floourl, me: that.me });
   const reactStatusBar = require("./react_wrapper").create_node("status-bar", view);
   // that.statusBar = atom.workspace.addBottomPanel({item: reactStatusBar});
 
