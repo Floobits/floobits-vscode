@@ -11,14 +11,14 @@
         "Other"
     ],
     "activationEvents": [
-        "*",
-        "onCommand:extension.sayHello"
+        "extension.joinWorkspace",
+        "*"
     ],
     "main": "./out/src/extension",
     "contributes": {
         "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
+            "command": "extension.joinWorkspace",
+            "title": "Join Workspace"
         }]
     },
     "scripts": {
@@ -28,10 +28,23 @@
         "test": "node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
+        "@types/mocha": "^2.2.32",
         "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
+        "async": "1.x",
+        "dmp": "1.x",
+        "eslint": "3.x",
+        "eslint-config-floobits": "*",
+        "eslint-plugin-react": "5.x",
+        "event-kit": "1.5.x",
+        "flukes": ">=0.1.4",
+        "fs-plus": "2.x",
+        "lodash": "4.x",
+        "minimatch": "3.x",
+        "mkdirp": "0.5.x",
+        "mocha": "^2.3.3",
+        "open": "0.x",
+        "request": "2.x",
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0"
     }
 }
