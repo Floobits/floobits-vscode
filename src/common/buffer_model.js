@@ -103,7 +103,7 @@ Buf.prototype.patch = function (patch_obj) {
     throw new Error("Received Invalid bytes from workspace." + e.toString() + "Patch was: " + patch_obj.patch);
   }
 
-  console.debug("applying", patch_obj.patch, "to", patch_obj.path);
+  console.info("applying", patch_obj.patch, "to", patch_obj.path);
 
   const md5_before = utils.md5(this.buf);
   if (patch_obj.md5_before !== md5_before) {

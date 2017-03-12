@@ -74,12 +74,12 @@ SoundEffects.prototype.playNote = function (type, frequency, noteDuration, offse
     return;
   }
   if (!prefs.sound) {
-    console.debug("sound disabled. not playing", frequency, "for", noteDuration);
+    console.info("sound disabled. not playing", frequency, "for", noteDuration);
     return;
   }
 
   const play = () => {
-    console.debug("playing", frequency, "for", noteDuration);
+    console.info("playing", frequency, "for", noteDuration);
     const osc = this.context.createOscillator();
     offset = offset || 0;
 

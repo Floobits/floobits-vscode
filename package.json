@@ -11,13 +11,13 @@
         "Other"
     ],
     "activationEvents": [
-        "extension.joinWorkspace",
+        "floobits.joinWorkspace",
         "*"
     ],
-    "main": "./out/src/extension",
+    "main": "./out/src/floobits",
     "contributes": {
         "commands": [{
-            "command": "extension.joinWorkspace",
+            "command": "floobits.joinWorkspace",
             "title": "Join Workspace"
         }]
     },

@@ -367,13 +367,13 @@ WebRTC.prototype.setupPeer_ = function (peers, connId, type) {
     console.log("Reconnecting to", pcKey);
     delete peers[pcKey];
     peer.once("close", function () {
-      console.debug("closed", pcKey);
+      console.info("closed", pcKey);
       this.createNewOffer_(connId, type);
     }.bind(this));
     peer.close();
   }.bind(this));
   pc.on("removeStream", function (event) {
-    console.debug("removeStream", event);
+    console.info("removeStream", event);
   });
   pc.on("ice", function (event) {
     Socket.send_webrtc({
@@ -385,7 +385,7 @@ WebRTC.prototype.setupPeer_ = function (peers, connId, type) {
   });
 
   pc.on("addStream", function (evt) {
-    console.debug("addStream", evt);
+    console.info("addStream", evt);
     if (this.soundEffects) {
       SoundEffects.join(this.users.getByConnectionID(connId).id);
     }
@@ -406,7 +406,7 @@ WebRTC.prototype.handleClosedConnection_ = function (connId, type) {
     conn.stream = null;
     conn.streamURL = null;
   }
-  console.debug("Like *poof*.", connId);
+  console.info("Like *poof*.", connId);
   this.log_(connId, " has disconnected from your video chat.");
   if (this.soundEffects) {
     SoundEffects.leave(this.users.getByConnectionID(connId).id);
@@ -888,7 +888,7 @@ WebRTC.prototype.stopUserMedia = function (stream, type) {
       try {
         self.closePeer_(userId, t, true);
       } catch (e) {
-        console.debug(e);
+        console.info(e);
       }
     });
     webrtcAction.closedStreams();

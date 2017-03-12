@@ -26,7 +26,7 @@ Transport.prototype.disconnect = function () {
 };
 
 Transport.prototype.write = function (name, msg, cb, context) {
-  console.debug(name, msg, cb, context);
+  console.info(name, msg, cb, context);
   throw new Error("not implemented");
 };
 

@@ -169,7 +169,7 @@ function load_floo (_path) {
   var floo_file, data = {};
 
   _path = path.join(_path, ".floo");
-  console.debug("Loading floo file", _path);
+  console.info("Loading floo file", _path);
 
   try {
     /*eslint-disable no-sync */
@@ -187,7 +187,7 @@ function load_floo (_path) {
 function write_floo (_path, data) {
   _path = path.join(_path, ".floo");
 
-  console.debug("Writing floo file", _path);
+  console.info("Writing floo file", _path);
   try {
     /*eslint-disable no-sync */
     fs.writeFileSync(_path, JSON.stringify(data, null, "    "));

@@ -14,7 +14,7 @@ function AccountHandler(username, password, email) {
 AccountHandler.prototype.start = function () {
   floop.onCREATE_USER(function (msg) {
     // TODO
-    console.debug("User created:", msg);
+    console.info("User created:", msg);
   });
   floop.onDISCONNECT(this.on_disconnect.bind(this));
   floop.onERROR(this.on_error.bind(this));
