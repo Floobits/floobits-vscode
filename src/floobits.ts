@@ -2,7 +2,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * from './floourl';
+import FlooURL from './floourl';
 
 declare var fl: {
   PLUGIN_VERSION: string;
@@ -57,7 +57,6 @@ const listen = (context: vscode.ExtensionContext) => {
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event: vscode.TextDocumentChangeEvent) => {
     console.log(event.document.uri.fsPath, event.document.fileName, event.contentChanges.map(e => e.text).join(','));
   }));
-
 };
 
 const on_request_perms = (data) => {
@@ -67,8 +66,8 @@ const on_request_perms = (data) => {
   }
   const handleRequestPerm = require("./build/handle_request_perm");
   const view = handleRequestPerm({ username: user.username, userId: data.user_id, perms: data.perms });
-  const atomUtils = require("./atom_utils");
-  atomUtils.addModalPanel("handle-request-perm", view);
+  // const atomUtils = require("./atom_utils");
+  // atomUtils.addModalPanel("handle-request-perm", view);
 };
 
 const on_room_info = (workspace) => {
@@ -249,13 +248,8 @@ async function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL,
 export function activate(context: vscode.ExtensionContext) {
 
   console.log('Floobits is active!');
-  const floourl: FlooURL = {
-    host: 'floobits.com',
-    port: 3448,
-    owner: 'Floobits',
-    secure: true,
-    workspace: 'atom',
-  };
+  const floourl: FlooURL = new FlooURL('Floobits', 'atom', 'floobits.com', '3448');
+
   const url: string = "https://floobits.com/Floobits/atom";
   const floobitsPath: string = '/floobits/floobits-atom';
   // const floobitsPath: string = vscode.workspace.rootPath;

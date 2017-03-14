@@ -26,4 +26,4 @@ class FlooURL {
   }
 };
 
-exports.FlooURL = FlooURL;
+export default FlooURL;

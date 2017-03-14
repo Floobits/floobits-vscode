@@ -14,11 +14,11 @@ const notifications = [];
 
 
 // Clear notifications on window close
-self.addEventListener("beforeunload", function () {
-  _.each(notifications, function (n) {
-    n.close();
-  });
-});
+// self..addEventListener("beforeunload", function () {
+//   _.each(notifications, function (n) {
+//     n.close();
+//   });
+// });
 
 const Actions = flux.createActions({
   notify: function (msg, force) {

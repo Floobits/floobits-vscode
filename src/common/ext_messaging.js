@@ -2,10 +2,10 @@
 "use strict";
 
 const _ = require("lodash");
-const $ = require("atom-space-pen-views").$;
+// const $ = require("atom-space-pen-views").$;
 
 const floop = require("./floop");
-const webrtcAction = require("./webrtc_action");
+// const webrtcAction = require("./webrtc_action");
 
 var callback;
 

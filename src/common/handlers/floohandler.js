@@ -12,10 +12,10 @@ const floop = require("../floop");
 const messageAction = require("../message_action");
 const editorAction = require("../editor_action");
 
-const mugshot = require("../mugshot");
+// const mugshot = require("../mugshot");
 const usersModel = require("../user_model");
 const prefs = require("../userPref_model");
-const webrtcAction = require("../webrtc_action");
+// const webrtcAction = require("../webrtc_action");
 const perms = require("../permission_model");
 const constants = require("../constants");
 const ignore = require("../ignore");
@@ -33,7 +33,18 @@ function FlooHandler(floobits_base_path, floourl, me, users, bufs, filetree, cre
   this.createdWorkspace = createdWorkspace;
 
   // atom.Directory
-  this.directory = utils.findDirectory(floobits_base_path);
+  // function findDirectory(pathToFloobits) {
+  //   debugger;
+  //   const dirs = atom.project.getDirectories();
+  //   return _.find(dirs, function (d) {
+  //     // TODO: normalize paths before compare
+  //     /* eslint-disable no-sync */
+  //     return d.getRealPathSync() === pathToFloobits;
+  //     /* eslint-enable no-sync */
+  //   });
+  // }
+
+  // this.directory = utils.findDirectory(floobits_base_path);
   if (!this.directory) {
     throw new Error("Could not find the top level directory open in Atom", floobits_base_path);
   }
@@ -76,7 +87,7 @@ FlooHandler.prototype.start = function (auth) {
     username: auth.username,
     secret: auth.secret,
     path: util.format("%s/%s", this.floourl.owner, this.floourl.workspace),
-    client: "Atom",
+    client: "VSCODE",
     platform: process.platform,
     supported_encodings: ["utf8", "base64"],
     version: constants.VERSION
@@ -335,6 +346,7 @@ FlooHandler.prototype.on_room_info = function (workspace) {
       that.get_paths_to_upload(that.directory, cb);
     }],
     editors: ["paths", function (cb) {
+      debugger;
       const editors = atom.workspace.getTextEditors();
       _.each(editors, function (editor) {
         var md5, txt, fluffer = that.bufs.findFluffer(editor);
@@ -466,7 +478,7 @@ FlooHandler.prototype.on_part = function (partData) {
   }
   const connInfo = user.connections.get(connId);
   messageAction.log(`${username} left. (Using ${connInfo.client} on ${connInfo.platform})`, null, true);
-  webrtcAction.stop_video_chat(connId);
+  // webrtcAction.stop_video_chat(connId);
   user.connections.remove(connId);
   if (user.connections.length < 1) {
     this.users.remove(user.id);

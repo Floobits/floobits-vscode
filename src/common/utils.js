@@ -269,16 +269,6 @@ const BROWSER_CLIENTS = [
   "web",
 ];
 
-function findDirectory (pathToFloobits) {
-  const dirs = atom.project.getDirectories();
-  return _.find(dirs, function (d) {
-    // TODO: normalize paths before compare
-    /* eslint-disable no-sync */
-    return d.getRealPathSync() === pathToFloobits;
-    /* eslint-enable no-sync */
-  });
-}
-
 function padNum (padNum) {
   var n;
   n = padNum.toString(10);

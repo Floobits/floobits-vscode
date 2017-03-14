@@ -49,6 +49,7 @@ Ignore.prototype.init = function (directory, cb) {
   /* eslint-enable no-sync */
   _.each(BLACKLIST, this.add_ignore_entry_.bind(this, pretend_path));
   this.create_flooignore_(this.dir_path);
+  debugger;
   atom.project.repositoryForDirectory(directory).then((repo) => {
     this.repo = repo;
     return cb();
