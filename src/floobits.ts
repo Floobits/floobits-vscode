@@ -4,20 +4,8 @@
 import * as vscode from 'vscode';
 import FlooURL from './floourl';
 
-declare var fl: {
-  PLUGIN_VERSION: string;
-  base_path: string;
-  editor_settings: {
-    room_owner: string;
-    room: string;
-  }
-  floourl: FlooURL;
-  username: string;
-};
-
-import './globals';
-
-fl.PLUGIN_VERSION = "0.0.1";
+import fl from './globals';
+import './ignore';
 
 let filetree, usersModel, users, floorc, auth, me, buffer, bufs, handler;
 
@@ -175,7 +163,7 @@ const on_disconnect = (msg) => {
   leave_workspace();
 };
 
-async function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL, url: string, created: boolean, floobitsPath: string) {
+function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL, url: string, created: boolean, floobitsPath: string) {
   // context.globalState
   // that.leave_workspace();
   const thing: string = context.globalState.get<string>('floobits');
@@ -238,7 +226,6 @@ async function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL,
   bufs.start();
   handler.start(auth);
 
-
   // if (atom.config.get("floobits.userList")) {
   //   user_list();
   // }
@@ -246,9 +233,19 @@ async function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL,
 
 
 export function activate(context: vscode.ExtensionContext) {
+  const disposables: vscode.Disposable[] = [];
+  context.subscriptions.push(new vscode.Disposable(() => vscode.Disposable.from(...disposables).dispose()));
 
+  fl.editor = {
+    context, disposables,
+    getConfiguration: (k, v) => vscode.workspace.getConfiguration(k).get<string>(v),
+  };
+  const { version } = require(context.asAbsolutePath('./package.json')) as { version: string };
+  fl.PLUGIN_VERSION = version;
+  
   console.log('Floobits is active!');
   const floourl: FlooURL = new FlooURL('Floobits', 'atom', 'floobits.com', '3448');
+  fl.floourl = floourl;
 
   const url: string = "https://floobits.com/Floobits/atom";
   const floobitsPath: string = '/floobits/floobits-atom';
@@ -259,7 +256,6 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand('vscode.openFolder', floobitsPath)
     return;
   }
-  debugger;
   joinWorkspace(context, floourl, url, false, floobitsPath);
 }
 
