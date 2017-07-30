@@ -44,16 +44,17 @@ function Ignore() {
 
 Ignore.prototype.init = function (directory, cb) {
   /* eslint-disable no-sync */
-  this.dir_path = directory.getRealPathSync();
+  this.dir_path = directory;
   const pretend_path = path.join(this.dir_path, IGNORE_FILE);
   /* eslint-enable no-sync */
   _.each(BLACKLIST, this.add_ignore_entry_.bind(this, pretend_path));
   this.create_flooignore_(this.dir_path);
-  debugger;
-  atom.project.repositoryForDirectory(directory).then((repo) => {
-    this.repo = repo;
-    return cb();
-  }, cb);
+  this.repo = null;
+  return cb();
+  // atom.project.repositoryForDirectory(directory).then((repo) => {
+  //   this.repo = repo;
+  //   return cb();
+  // }, cb);
 };
 
 Ignore.prototype.create_flooignore_ = function () {

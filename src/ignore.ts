@@ -26,6 +26,7 @@ const DEFAULT_IGNORES: Array<string> = [
   "*.pyc",
   "*~",
   "extern/",
+  "heroku.yml",
   "node_modules/",
   "tmp",
   "vendor/",
@@ -34,7 +35,6 @@ const DEFAULT_IGNORES: Array<string> = [
 const MAX_FILE_SIZE = 1024 * 1024 * 5;
 
 
-module.exports = new Ignore();
 
 // const IS_IG_IGNORED = 1;
 // const IS_IG_CHECK_CHILD = 2;
@@ -56,7 +56,7 @@ class Ignore {
 
     console.log('floobits using git', "Using git {0} from {1}", info.version, info.path);
   }
-  
+
   async lsFiles () {
     const result = await this.git_.exec(fl.base_path, ['git', 'ls-tree', '-r', '--name-only', '--full-tree', 'HEAD']);
     this.files_ = new Set(result.stdout.split('\n'));
@@ -84,7 +84,7 @@ class Ignore {
       console.error(e);
     }
   }
-  
+
   is_ignored (absOSPath: string): boolean {
     if (!this.files_.has(absOSPath)) {
       return true;
@@ -108,6 +108,8 @@ class Ignore {
     return size > MAX_FILE_SIZE;
   }
 }
+
+module.exports = new Ignore();
 
 // function Ignore() {
 //   this.ignores = [];

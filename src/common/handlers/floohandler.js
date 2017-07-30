@@ -45,9 +45,11 @@ function FlooHandler(floobits_base_path, floourl, me, users, bufs, filetree, cre
   // }
 
   // this.directory = utils.findDirectory(floobits_base_path);
-  if (!this.directory) {
-    throw new Error("Could not find the top level directory open in Atom", floobits_base_path);
-  }
+  // if (!this.directory) {
+  //   throw new Error("Could not find the top level directory open in Atom", floobits_base_path);
+  // }
+  // TODO: kans: do the thing above us
+  this.directory = floobits_base_path;
   this.bufs = bufs;
   this.filetree = filetree;
   this.users = users;
@@ -78,9 +80,9 @@ FlooHandler.prototype.start = function (auth) {
     }
   }
 
-  this.permsID = perms.on(mugHandler);
-  this.prefsDND = prefs.on("dnd", mugHandler);
-  this.prefsMugshots = prefs.on("mugshots", mugHandler);
+  // this.permsID = perms.on(mugHandler);
+  // this.prefsDND = prefs.on("dnd", mugHandler);
+  // this.prefsMugshots = prefs.on("mugshots", mugHandler);
 
   floop.connect(new Transport(this.floourl.host, this.floourl.port), {
     api_key: auth.api_key,
@@ -95,10 +97,10 @@ FlooHandler.prototype.start = function (auth) {
 };
 
 FlooHandler.prototype.stop = function () {
-  perms.off(this.permsID);
-  prefs.off(this.prefsMugshots);
-  prefs.off(this.prefsDND);
-  mugshot.stop();
+  // perms.off(this.permsID);
+  // prefs.off(this.prefsMugshots);
+  // prefs.off(this.prefsDND);
+  // mugshot.stop();
 
   this.bufs = null;
   this.terminals = null;
@@ -338,6 +340,7 @@ FlooHandler.prototype.on_room_info = function (workspace) {
   const missing = {};
   const createdWorkspace = this.createdWorkspace;
 
+  return;
   async.auto({
     ignore: function (cb) {
       ignore.init(that.directory, cb);
@@ -346,8 +349,9 @@ FlooHandler.prototype.on_room_info = function (workspace) {
       that.get_paths_to_upload(that.directory, cb);
     }],
     editors: ["paths", function (cb) {
-      debugger;
-      const editors = atom.workspace.getTextEditors();
+      const editors = {};
+      // TODO: kans check with VSCode editors...
+      // atom.workspace.getTextEditors();
       _.each(editors, function (editor) {
         var md5, txt, fluffer = that.bufs.findFluffer(editor);
         if (!fluffer) {

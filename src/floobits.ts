@@ -6,54 +6,20 @@ import FlooURL from './floourl';
 
 import fl from './globals';
 import './ignore';
+import {listen} from './vscode_listener';
 
 let filetree, usersModel, users, floorc, auth, me, buffer, bufs, handler;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
-const TextDocuments: { [s: string]: vscode.TextDocument; } = {};
-
-const listen = (context: vscode.ExtensionContext) => {
-
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with  registerCommand
-  // The commandId parameter must match the command field in package.json
-
-  let disposable = vscode.commands.registerCommand('extension.joinWorkspace', () => {
-    // The code you place here will be executed every time your command is executed
-
-    // Display a message box to the user
-    vscode.window.showInformationMessage('Hello World!');
-  });
-
-  context.subscriptions.push(disposable);
-
-  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((event: vscode.TextEditor) => {
-    console.log('hello', event);
-  }));
-
-  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document: vscode.TextDocument) => {
-    TextDocuments[document.uri.toString()] = document;
-  }));
-
-  context.subscriptions.push(vscode.workspace.onDidCloseTextDocument((document: vscode.TextDocument) => {
-    delete TextDocuments[document.uri.toString()];
-  }));
-
-
-  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event: vscode.TextDocumentChangeEvent) => {
-    console.log(event.document.uri.fsPath, event.document.fileName, event.contentChanges.map(e => e.text).join(','));
-  }));
-};
-
 const on_request_perms = (data) => {
   const user = this.users.getByConnectionID(data.user_id);
   if (!user) {
     return;
   }
-  const handleRequestPerm = require("./build/handle_request_perm");
-  const view = handleRequestPerm({ username: user.username, userId: data.user_id, perms: data.perms });
+  // const handleRequestPerm = require("./build/handle_request_perm");
+  // const view = handleRequestPerm({ username: user.username, userId: data.user_id, perms: data.perms });
   // const atomUtils = require("./atom_utils");
   // atomUtils.addModalPanel("handle-request-perm", view);
 };
@@ -168,8 +134,10 @@ function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL, url: 
   // that.leave_workspace();
   const thing: string = context.globalState.get<string>('floobits');
   if (thing && thing !== vscode.workspace.rootPath) {
+    console.log("not doing thing", vscode.workspace.rootPath, thing);
     return;
   }
+  console.log("doing thing");
   context.globalState.update('floobits', undefined);
   const usersModel = require("./common/user_model");
   users = new usersModel.Users();
@@ -206,9 +174,9 @@ function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL, url: 
 
   floourl = floourl;
 
-  // const AtomListener = require("./atom_listener");
-  // this.atom_listener = new AtomListener(bufs, users, me);
-  // this.atom_listener.start();
+  // const VSCodeListener = require("./vscode_listener");
+  listen(context);
+
   const editorAction = require("./common/editor_action");
   const prefs = require("./common/userPref_model");
   editorAction.set(bufs, prefs);
@@ -217,9 +185,9 @@ function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL, url: 
   handler = new FlooHandler(floobitsPath, floourl, me, users, bufs, filetree, created);
   // const WebRTC = require("./common/webrtc");
   // webrtc = new WebRTC(users, me);
-  const statusBar = require("./build/status_bar");
-  const view = statusBar({ floourl: floourl, me: me });
-  const reactStatusBar = require("./react_wrapper").create_node("status-bar", view);
+  // const statusBar = require("./build/status_bar");
+  // const view = statusBar({ floourl: floourl, me: me });
+  // const reactStatusBar = require("./react_wrapper").create_node("status-bar", view);
   // statusBar = atom.workspace.addBottomPanel({item: reactStatusBar});
 
   // open_chat();
@@ -242,23 +210,35 @@ export function activate(context: vscode.ExtensionContext) {
   };
   const { version } = require(context.asAbsolutePath('./package.json')) as { version: string };
   fl.PLUGIN_VERSION = version;
-  
+
   console.log('Floobits is active!');
   const floourl: FlooURL = new FlooURL('Floobits', 'atom', 'floobits.com', '3448');
   fl.floourl = floourl;
 
   const url: string = "https://floobits.com/Floobits/atom";
-  const floobitsPath: string = '/floobits/floobits-atom';
+  const floobitsPath: string = '/floobits/atom-floobits';
+  // const floobitsPath: string = '~/floobits/atom-plugin';
   // const floobitsPath: string = vscode.workspace.rootPath;
-
+  console.log('here', floobitsPath, vscode.workspace.rootPath);
+  context.globalState.update('floobits', floobitsPath);
   if (floobitsPath !== vscode.workspace.rootPath) {
     context.globalState.update('floobits', floobitsPath);
+    console.log("floobitsPath for new window", floobitsPath, vscode.workspace.rootPath);
     vscode.commands.executeCommand('vscode.openFolder', floobitsPath)
+      .then((asdf) => {
+        console.log('opened window maybe?', asdf);
+      });
     return;
   }
+  console.log("joining workspace");
   joinWorkspace(context, floourl, url, false, floobitsPath);
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() {
 }
+// here /floobits/atom-floobits /home/ggreer/floobits/atom-plugin
+// floobitsPath for new window /floobits/atom-floobits /home/ggreer/floobits/atom-plugin
+// WARNING: Promise with no error callback:2
+// Object
+// exception:null
