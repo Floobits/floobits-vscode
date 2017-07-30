@@ -237,61 +237,64 @@ FlooHandler.prototype.on_delete_temp_data = function (data) {
   });
 };
 
-FlooHandler.prototype.get_paths_to_upload = function (d, cb) {
-  const toUpload = [];
-  const entries = [d];
+FlooHandler.prototype.get_paths_to_upload = function (directory, cb) {
+
+  const toUpload = [...ignore.inGit];
   const ignored = [];
   const tooBig = {};
-  let entry;
-  let totalSize = 0; // eslint-disable-line no-unused-vars
-  while (entries.length) {
-    entry = entries.pop();
-    /* eslint-disable no-sync */
-    const p = entry.getRealPathSync();
-    /* eslint-enable no-sync */
-    // TODO: skip ignored if root entry
-    if (ignore.is_ignored(p)) {
-      messageAction.info(`Skipping ${p} because it is ignored`);
-      console.log("ignoring", p);
-      ignored.push(p);
-      continue;
-    }
-    if (entry.isFile()) {
-      const size = ignore.getSize(p);
-      if (ignore.is_too_big(size)) {
-        tooBig[p] = size;
-        messageAction.info(`Skipping ${p} because it is too big`);
-        console.log("too big", p);
-        continue;
-      }
-      totalSize += size;
-      // TODO: store totalSize and check it against max workspace size
-      toUpload.push(entry);
-      continue;
-    }
-    if (!entry.isDirectory()) {
-      continue;
-    }
-    if (entry.getPath().split(path.sep).length > 25) {
-      console.warn("Went too deep (25 directory entries). Skipping directory", entry.getPath());
-      console.warn("Maybe there's a symlink loop?");
-      continue;
-    }
-    // TODO: this is super slow
-    /*eslint-disable no-sync */
-    const newEntries = entry.getEntriesSync();
-    /*eslint-enable no-sync */
-    for (let i = 0; i < newEntries.length; i++) {
-      const newEntry = newEntries[i];
-      if (newEntry.isFile()) {
-        ignore.add_ignore(newEntry);
-      }
-      /* eslint-disable no-sync */
-      // console.log("new", e.getRealPathSync());
-      /* eslint-enable no-sync */
-      entries.push(newEntry);
-    }
-  }
+  // return cb()
+
+  // const entries = [d];
+  // let entry;
+  // let totalSize = 0; // eslint-disable-line no-unused-vars
+  // while (entries.length) {
+  //   entry = entries.pop();
+  //   /* eslint-disable no-sync */
+  //   const p = entry.getRealPathSync();
+  //   /* eslint-enable no-sync */
+  //   // TODO: skip ignored if root entry
+  //   if (ignore.is_ignored(p)) {
+  //     messageAction.info(`Skipping ${p} because it is ignored`);
+  //     console.log("ignoring", p);
+  //     ignored.push(p);
+  //     continue;
+  //   }
+  //   if (entry.isFile()) {
+  //     const size = ignore.getSize(p);
+  //     if (ignore.is_too_big(size)) {
+  //       tooBig[p] = size;
+  //       messageAction.info(`Skipping ${p} because it is too big`);
+  //       console.log("too big", p);
+  //       continue;
+  //     }
+  //     totalSize += size;
+  //     // TODO: store totalSize and check it against max workspace size
+  //     toUpload.push(entry);
+  //     continue;
+  //   }
+  //   if (!entry.isDirectory()) {
+  //     continue;
+  //   }
+  //   if (entry.getPath().split(path.sep).length > 25) {
+  //     console.warn("Went too deep (25 directory entries). Skipping directory", entry.getPath());
+  //     console.warn("Maybe there's a symlink loop?");
+  //     continue;
+  //   }
+  //   // TODO: this is super slow
+  //   /*eslint-disable no-sync */
+  //   const newEntries = entry.getEntriesSync();
+  //   /*eslint-enable no-sync */
+  //   for (let i = 0; i < newEntries.length; i++) {
+  //     const newEntry = newEntries[i];
+  //     if (newEntry.isFile()) {
+  //       ignore.add_ignore(newEntry);
+  //     }
+  //     /* eslint-disable no-sync */
+  //     // console.log("new", e.getRealPathSync());
+  //     /* eslint-enable no-sync */
+  //     entries.push(newEntry);
+  //   }
+  // }
   return cb(null, {
     toUpload,
     ignored,
@@ -340,7 +343,6 @@ FlooHandler.prototype.on_room_info = function (workspace) {
   const missing = {};
   const createdWorkspace = this.createdWorkspace;
 
-  return;
   async.auto({
     ignore: function (cb) {
       ignore.init(that.directory, cb);
@@ -352,40 +354,37 @@ FlooHandler.prototype.on_room_info = function (workspace) {
       const editors = {};
       // TODO: kans check with VSCode editors...
       // atom.workspace.getTextEditors();
-      _.each(editors, function (editor) {
-        var md5, txt, fluffer = that.bufs.findFluffer(editor);
-        if (!fluffer) {
-          let p = editor.getPath();
-          if (p && utils.is_shared(p) && !ignore.is_ignored(p)) {
-            newFiles[utils.to_rel_path(p)] = {path: p, txt: editor.getText()};
-          }
-          return;
-        }
-        txt = editor.getText();
-        md5 = utils.md5(txt);
-        if (md5 === fluffer.md5) {
-          fluffer.set({buf: txt, populated: true}, {silent: true});
-          found[fluffer.id] = md5;
-          return;
-        }
-        different[fluffer.id] = {path: fluffer.path, txt: txt, md5: md5};
-        fluffer.set({buf: txt, populated: false}, {silent: true});
-      });
+      // _.each(editors, function (editor) {
+      //   var md5, txt, fluffer = that.bufs.findFluffer(editor);
+      //   if (!fluffer) {
+      //     let p = editor.getPath();
+      //     if (p && utils.is_shared(p) && !ignore.is_ignored(p)) {
+      //       newFiles[utils.to_rel_path(p)] = {path: p, txt: editor.getText()};
+      //     }
+      //     return;
+      //   }
+      //   txt = editor.getText();
+      //   md5 = utils.md5(txt);
+      //   if (md5 === fluffer.md5) {
+      //     fluffer.set({buf: txt, populated: true}, {silent: true});
+      //     found[fluffer.id] = md5;
+      //     return;
+      //   }
+      //   different[fluffer.id] = {path: fluffer.path, txt: txt, md5: md5};
+      //   fluffer.set({buf: txt, populated: false}, {silent: true});
+      // });
       cb(null);
     }],
     iter_fs: ["paths", function (iter_fs_cb, res) {
-      async.eachLimit(res.paths.toUpload, 10, function (file, cb) {
-        var fluffer = that.bufs.findFluffer(file);
+      async.eachLimit(res.paths.toUpload, 10, function (absPath, cb) {
+        var fluffer = that.bufs.findFluffer(absPath);
         // the file doesn't match a buffer
         if (!fluffer) {
-          /* eslint-disable no-sync */
-          const p = file.getRealPathSync();
-          /* eslint-enable no-sync */
-          if (!utils.is_shared(p)) {
+          if (!utils.is_shared(absPath)) {
             setImmediate(cb);
             return;
           }
-          newFiles[utils.to_rel_path(p)] = {path: p};
+          newFiles[utils.to_rel_path(absPath)] = {path: absPath};
           setImmediate(cb);
           return;
         }
@@ -397,10 +396,10 @@ FlooHandler.prototype.on_room_info = function (workspace) {
           return;
         }
         /* eslint-disable no-sync */
-        fs.readFile(file.getRealPathSync(), function (err, buffer) {
+        fs.readFile(absPath, function (err, buffer) {
           if (err) {
             console.error(err);
-            missing[fluffer.id] = {path: file.getRealPathSync()};
+            missing[fluffer.id] = {path: absPath};
             return cb();
           }
           let encoding = utils.is_binary(buffer, buffer.length) ? "base64" : "utf8";

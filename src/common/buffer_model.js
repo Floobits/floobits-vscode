@@ -188,12 +188,13 @@ const Buffers = flux.createCollection({
     }
     return this.get(id);
   },
-  findFluffer: function (obj) {
+  // findFluffer: function (obj) {
+  findFluffer: function (absPath) {
     /* eslint-disable no-sync */
-    const p = obj.getRealPathSync ? obj.getRealPathSync() : obj.getPath();
+    // const p = obj.getRealPathSync ? obj.getRealPathSync() : obj.getPath();
     /* eslint-enable no-sync */
-    if (utils.is_shared(p)) {
-      return this.getBufferByPath(utils.to_rel_path(p));
+    if (utils.is_shared(absPath)) {
+      return this.getBufferByPath(utils.to_rel_path(absPath));
     }
   },
   init: function () {

@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { exec } = require('child_process');
 
 const _ = require("lodash");
 const Minimatch = require("minimatch").Minimatch;
@@ -40,6 +41,7 @@ function Ignore() {
   this.ignores = [];
   this.unignores = [];
   this.repo = null;
+  this.inGit = new Set();
 }
 
 Ignore.prototype.init = function (directory, cb) {
@@ -49,12 +51,18 @@ Ignore.prototype.init = function (directory, cb) {
   /* eslint-enable no-sync */
   _.each(BLACKLIST, this.add_ignore_entry_.bind(this, pretend_path));
   this.create_flooignore_(this.dir_path);
+  exec('git ls-tree -r --name-only --full-tree HEAD', {cwd: directory}, (err, stdout, stderr) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    const paths = stdout.split('\n').map(p => path.join(directory, p));
+    this.inGit = new Set(paths);
+    console.log(paths);
+    cb(err);
+  });
   this.repo = null;
-  return cb();
-  // atom.project.repositoryForDirectory(directory).then((repo) => {
-  //   this.repo = repo;
-  //   return cb();
-  // }, cb);
 };
 
 Ignore.prototype.create_flooignore_ = function () {
@@ -99,6 +107,8 @@ Ignore.prototype.is_ignored_ = function (filePath) {
 };
 
 Ignore.prototype.is_ignored = function (absOSPath) {
+  return this.inGit.has(absOSPath);
+
   const gitIgnored = this.repo && this.repo.isPathIgnored(absOSPath) && absOSPath !== this.dir_path;
   const flooIgnored = this.is_ignored_(absOSPath);
   if (gitIgnored || flooIgnored) {
