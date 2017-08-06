@@ -175,7 +175,7 @@ function joinWorkspace(context: vscode.ExtensionContext, floourl: FlooURL, url: 
   floourl = floourl;
 
   // const VSCodeListener = require("./vscode_listener");
-  listen(context);
+  listen(context, bufs);
 
   const editorAction = require("./common/editor_action");
   const prefs = require("./common/userPref_model");

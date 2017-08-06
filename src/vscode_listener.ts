@@ -1,4 +1,11 @@
 import * as vscode from 'vscode';
+
+const fs = require("fs");
+const path = require("path");
+
+const floop = require("./common/floop");
+const utils = require("./common/utils");
+
 // import { commands, Disposable, ExtensionContext, TextEditor, window } from 'vscode';
 const _ = require("lodash");
 
@@ -56,144 +63,192 @@ const subscribeToEditor = (context: vscode.ExtensionContext) => {
   }));
 };
 
-const subscribeToFloobits = () => {
-  editorAction.onHANDLE_CONFLICTS((conflicts: Conflicts) => {
-    if (_.isEmpty(conflicts.newFiles) && _.isEmpty(conflicts.different) && _.isEmpty(conflicts.missing)) {
-      // this.start_chokidar_();
-      this.handledConflicts = true;
-      return;
-    }
-    const resolveConflicts = (toFetch: string[]) => {
-      this.toFetch = toFetch;
-      this.handledConflicts = true;
-
-      this.bufs.forEach(function (b, id) {
-        if (id in toFetch) {
-          return;
-        }
-        // Set populated so we send patches for things we sent set_buf for
-        b.set({populated: true}, {silent: true});
-      });
-      // this.start_chokidar_();
-    };
-
-
-    const pluralize = (arg: number) => arg !== 1 ? 's' : '';
-
-    let overwriteLocal: string = '';
-    let overwriteRemote: string = '';
-
-    const missing: string[]= _.map(conflicts.missing, b => b.path);
-    const changed: string[] = _.map(conflicts.different, b => b.path);
-    const newFiles: string[]= _.map(conflicts.newFiles, b => b.path);
-
-    const toRemove: string[] = missing; // + ignored);
-    const to_upload: string[] = _(newFiles).union(changed).difference(toRemove).value();
-
-    const toFetch: string[] = _.union(changed, missing);
-    const to_uploadLen: number = to_upload.length
-    const toRemoveLen: number = toRemove.length
-    const remoteLen: number = toRemoveLen + to_uploadLen
-    const toFetchLen: number = toFetch.length
-
-    console.log('To fetch: ', toFetch.join(', '))
-    console.log('To upload: ', to_upload.join(', '))
-    console.log('To remove: ', toRemove.join(', '))
-
-    if (!toFetchLen) {
-      overwriteLocal = 'Fetch nothing'
-    } else if (toFetchLen < 5) {
-      overwriteLocal = `Fetch ${toFetch.join(', ')}`;
-    } else {
-      overwriteLocal = `Fetch ${toFetchLen} file${pluralize(toFetchLen)}`;
-    }
-
-    let to_upload_str: string;
-    if (to_uploadLen < 5) {
-      to_upload_str = `Upload ${to_upload.join(', ')}`;
-    } else {
-      to_upload_str = `Upload ${to_uploadLen}`;
-    }
-
-    let toRemove_str: string;
-    if (toRemoveLen < 5) {
-      toRemove_str = `remove ${toRemove.join(', ')}`;
-    } else {
-      toRemove_str = `remove ${toRemoveLen}`;
-    }
-
-    if (to_uploadLen) {
-      overwriteRemote += to_upload_str;
-      if (toRemoveLen) {
-        overwriteRemote += ' and '
+const remote = (conflicts: Conflicts, bufs) => {
+  // this.setState({enabled: false});
+  _.each(conflicts.different, (b, id) => {
+    let encoding = b.encoding || "utf8";
+    floop.send_set_buf({
+      id, encoding,
+      buf: b.txt.toString(encoding),
+      md5: b.md5,
+    }, null, (err) => {
+      if (!err) {
+        // this.setState({different: this.state.different.add(id)});
+        floop.send_saved({id: id});
       }
-    }
+    });
+  });
 
-    if (toRemoveLen) {
-      overwriteRemote += toRemove_str;
-    }
+  _.each(conflicts.missing, (b, id) => {
+    floop.send_delete_buf({id}, null, () => {
+      // TODO: check err
+      // this.setState({missing: this.state.missing.add(id)});
+    });
+  });
 
-    if (remoteLen >= 5 && overwriteRemote) {
-      overwriteRemote += ' files'
-    }
+  _.each(conflicts.newFiles, (b, rel) => {
+    fs.readFile(b.path, (err, data) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
 
-     // Be fancy and capitalize "remove" if it's the first thing in the string
-    if (overwriteRemote.length) {
-        overwriteRemote = overwriteRemote[0].toUpperCase() + overwriteRemote.slice(1);
-    }
-
-    let connected_users_msg: string = '';
-
-    // const filter_user => (u) {
-    //   if u.get('is_anon'):
-    //       return False
-    //   if 'patch' not in u.get('perms'):
-    //       return False
-    //   if u.get('username') == self.username:
-    //       return False
-    //   return True
-    // }
-
-
-    // users = set([v['username'] for k, v in self.workspace_info['users'].items() if filter_user(v)])
-    // if users:
-    //     if len(users) < 4:
-    //         connected_users_msg = ' Connected: ' + ', '.join(users)
-    //     else:
-    //         connected_users_msg = ' %s users connected' % len(users)
-
-     // TODO: change action based on numbers of stuff
-    const opts = [
-      `Overwrite ${remoteLen} remote file${pluralize(remoteLen)}.`,
-      `Overwrite ${toFetchLen} local file${pluralize(toFetchLen)}`,
-      'Cancel',
-    ];
-
-    vscode.window.showQuickPick(opts)
-      .then(val => vscode.window.showInformationMessage('You picked ' + val));
-  //     .then(val => vscode.window.showInformationMessage('You picked ' + val));
-      // const view = require("./build/conflicts")(args);
-      // const wrapper = require("./react_wrapper");
-      // const conflicts = wrapper.create_node("conflicts", view,
-      //   {width: "100%", height: "100%", overflow: "auto"}
-      // );
-
-      // const P = require("../templates/pane");
-      // const p = new P("Floobits Conflicts", "floobits-conflicts", conflicts);
-      // const panes = atom.workspace.getPanes();
-      // _.each(panes, function (pane) {
-      //   const items = pane.getItems();
-      //   _.each(items, function (item) {
-      //     if (item.title === "Floobits Conflicts") {
-      //       pane.destroyItem(item);
-      //     }
-      //   });
-      // });
-      // atom.workspace.getActivePane().activateItem(p);
+      const encoding = utils.is_binary(data, data.length) ? "base64" : "utf8";
+      floop.send_create_buf({
+        path: rel,
+        buf: data.toString(encoding),
+        encoding: encoding,
+        md5: utils.md5(data),
+      }, null, () => {
+        // this.setState({newFiles: this.state.newFiles.add(rel)});
+      });
+    });
   });
 };
 
-export const listen = (context: vscode.ExtensionContext) => {
+const local = (conflicts: Conflicts, bufs) => {
+  // this.setState({
+  //   enabled: false,
+  //   newFiles: new Set(_.keys(this.props.newFiles)),
+  // });
+  _.each(conflicts.missing, (b, id) => {
+    floop.send_get_buf(id);
+    // () => this.setState({missing: this.state.missing.add(id)})
+  });
+  _.each(conflicts.different, (b, id) => {
+    floop.send_get_buf(id);
+    // () => this.setState({different: this.state.different.add(id)})
+  });
+  const toFetch = _.merge({}, conflicts.missing, conflicts.different);
+  //   this.handledConflicts = true;
+
+  bufs.forEach(function (b, id) {
+    if (id in toFetch) {
+      return;
+    }
+    // Set populated so we send patches for things we sent set_buf for
+    b.set({populated: true}, {silent: true});
+  });
+  //   // this.start_chokidar_();
+};
+
+const handleConflicts = (conflicts: Conflicts, bufs) => {
+  if (_.isEmpty(conflicts.newFiles) && _.isEmpty(conflicts.different) && _.isEmpty(conflicts.missing)) {
+    // this.start_chokidar_();
+    this.handledConflicts = true;
+    return;
+  }
+
+  const pluralize = (arg: number) => arg !== 1 ? 's' : '';
+
+  let overwriteLocal: string = '';
+  let overwriteRemote: string = '';
+
+  const missing: string[]= _.map(conflicts.missing, b => b.path);
+  const changed: string[] = _.map(conflicts.different, b => b.path);
+  const newFiles: string[]= _.map(conflicts.newFiles, b => b.path);
+
+  const toRemove: string[] = missing; // + ignored);
+  const to_upload: string[] = _(newFiles).union(changed).difference(toRemove).value();
+
+  const toFetch: string[] = _.union(changed, missing);
+  const to_uploadLen: number = to_upload.length
+  const toRemoveLen: number = toRemove.length
+  const remoteLen: number = toRemoveLen + to_uploadLen
+  const toFetchLen: number = toFetch.length
+
+  console.log('To fetch: ', toFetch.join(', '))
+  console.log('To upload: ', to_upload.join(', '))
+  console.log('To remove: ', toRemove.join(', '))
+
+  if (!toFetchLen) {
+    overwriteLocal = 'Fetch nothing'
+  } else if (toFetchLen < 5) {
+    overwriteLocal = `Fetch ${toFetch.join(', ')}`;
+  } else {
+    overwriteLocal = `Fetch ${toFetchLen} file${pluralize(toFetchLen)}`;
+  }
+
+  let to_upload_str: string;
+  if (to_uploadLen < 5) {
+    to_upload_str = `Upload ${to_upload.join(', ')}`;
+  } else {
+    to_upload_str = `Upload ${to_uploadLen}`;
+  }
+
+  let toRemove_str: string;
+  if (toRemoveLen < 5) {
+    toRemove_str = `remove ${toRemove.join(', ')}`;
+  } else {
+    toRemove_str = `remove ${toRemoveLen}`;
+  }
+
+  if (to_uploadLen) {
+    overwriteRemote += to_upload_str;
+    if (toRemoveLen) {
+      overwriteRemote += ' and '
+    }
+  }
+
+  if (toRemoveLen) {
+    overwriteRemote += toRemove_str;
+  }
+
+  if (remoteLen >= 5 && overwriteRemote) {
+    overwriteRemote += ' files'
+  }
+
+   // Be fancy and capitalize "remove" if it's the first thing in the string
+  if (overwriteRemote.length) {
+      overwriteRemote = overwriteRemote[0].toUpperCase() + overwriteRemote.slice(1);
+  }
+
+  let connected_users_msg: string = '';
+
+  // const filter_user => (u) {
+  //   if u.get('is_anon'):
+  //       return False
+  //   if 'patch' not in u.get('perms'):
+  //       return False
+  //   if u.get('username') == self.username:
+  //       return False
+  //   return True
+  // }
+
+
+  // users = set([v['username'] for k, v in self.workspace_info['users'].items() if filter_user(v)])
+  // if users:
+  //     if len(users) < 4:
+  //         connected_users_msg = ' Connected: ' + ', '.join(users)
+  //     else:
+  //         connected_users_msg = ' %s users connected' % len(users)
+
+   // TODO: change action based on numbers of stuff
+
+  const opts = [
+    `Overwrite ${remoteLen} remote file${pluralize(remoteLen)}.`,
+    `Overwrite ${toFetchLen} local file${pluralize(toFetchLen)}`,
+    'Cancel',
+  ];
+
+  vscode.window.showQuickPick(opts)
+    .then(val => {
+      switch (val) {
+        case opts[0]:
+          return remote(conflicts, bufs);
+        case opts[1]:
+          return local(conflicts, bufs);
+        case opts[2]:
+          return stop();
+      }
+     });
+};
+
+const subscribeToFloobits = (context: vscode.ExtensionContext, bufs) => {
+  editorAction.onHANDLE_CONFLICTS((conflicts: Conflicts) => handleConflicts(conflicts, bufs));
+};
+
+export const listen = (context: vscode.ExtensionContext, bufs) => {
   if (disposable) {
     console.error("already listening. disposing old listeners");
     disposable.dispose();
@@ -205,7 +260,7 @@ export const listen = (context: vscode.ExtensionContext) => {
 
   context.subscriptions.push(disposable);
   subscribeToEditor(context);
-  subscribeToFloobits();
+  subscribeToFloobits(context, bufs);
 };
 
   // editorAction.onGET_OPEN_EDITORS(getOpenEditors);
