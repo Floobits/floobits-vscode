@@ -109,15 +109,15 @@ Ignore.prototype.is_ignored_ = function (filePath) {
 Ignore.prototype.is_ignored = function (absOSPath) {
   return this.inGit.has(absOSPath);
 
-  const gitIgnored = this.repo && this.repo.isPathIgnored(absOSPath) && absOSPath !== this.dir_path;
-  const flooIgnored = this.is_ignored_(absOSPath);
-  if (gitIgnored || flooIgnored) {
-    if (this.is_unignored_(absOSPath)) {
-      return false;
-    }
-    return true;
-  }
-  return false;
+  // const gitIgnored = this.repo && this.repo.isPathIgnored(absOSPath) && absOSPath !== this.dir_path;
+  // const flooIgnored = this.is_ignored_(absOSPath);
+  // if (gitIgnored || flooIgnored) {
+  //   if (this.is_unignored_(absOSPath)) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
+  // return false;
 };
 
 Ignore.prototype.getSize = function (filePath) {
